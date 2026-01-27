@@ -2,7 +2,7 @@
 
 [![GitHub Build workflow status](https://github.com/bytefull/pn532-zephyr-driver/workflows/Build/badge.svg)](https://github.com/bytefull/pn532-zephyr-driver/actions/workflows/build.yml)
 [![GitHub Test workflow status](https://github.com/bytefull/pn532-zephyr-driver/workflows/Test/badge.svg)](https://github.com/bytefull/pn532-zephyr-driver/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/bytefull/pn532-zephyr-driver/branch/codecov/graph/badge.svg)](https://codecov.io/gh/bytefull/pn532-zephyr-driver)
+[![Coverage](https://codecov.io/gh/bytefull/pn532-zephyr-driver/branch/codecov/graph/badge.svg)](https://codecov.io/gh/bytefull/pn532-zephyr-driver)
 [![GitHub release](https://img.shields.io/github/v/release/bytefull/pn532-zephyr-driver)](https://github.com/bytefull/pn532-zephyr-driver/releases)
 [![Zephyr Compatibility](https://img.shields.io/badge/Zephyr-v4.1.0-blue)](https://github.com/zephyrproject-rtos/zephyr/releases/tag/v4.1.0)
 [![GitHub issues](https://img.shields.io/github/issues/bytefull/pn532-zephyr-driver)](https://github.com/bytefull/pn532-zephyr-driver/issues)
@@ -23,6 +23,16 @@ The PN532 Zephyr driver is an out-of-tree module supporting the NXP PN532 NFC mo
 
 - [x] Add test CI running on `native_sim` board + README badge
 
-- [ ] Add code coverage CI using `codecov` + README badge
+- [x] Add code coverage CI using `codecov` + README badge
 
-- [ ] Add the other relavant missing APIs to the driver
+- [ ] Add ESP32 to CI builds
+
+- [ ] Add a table of boards and their CI build status to readme
+
+- [ ] Refactor the transport into a vtable-style transport API
+
+- [ ] Implement the `get_firmware_version` functionality using I2C transport
+
+- [ ] Add the other relevant missing APIs to the driver
+
+- [ ] Add documentation using GitHub pages and MkDocs material and docs deploy workflow + badge
