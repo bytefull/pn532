@@ -15,13 +15,54 @@ LOG_MODULE_REGISTER(pn532, CONFIG_PN532_LOG_LEVEL);
 
 #include "pn532.h"
 
+#define PN532_MAX_FRAME_SIZE (64)
+#define PN532_RX_RING_BUFFER_SIZE (256)
+
 struct pn532_data {
-    uint32_t dummy;
+    struct ring_buf rx_ring_buffer;
+    uint8_t rx_buffer[PN532_RX_RING_BUFFER_SIZE];
+    uint8_t tx_buffer[PN532_MAX_FRAME_SIZE];
 };
 
 struct pn532_config {
     const struct device *uart_dev;
 };
+
+/* Buffer for building commands to send to PN532 */
+
+/* RX ring buffer for storing incoming data from PN532 */
+
+static void pn532_uart_rx_cb(const struct device *dev, void *user_data)
+{
+    ARG_UNUSED(user_data);
+
+    if (dev == NULL) {
+        LOG_ERR("Invalid UART device in callback");
+        return;
+    }
+
+    if (!uart_irq_update(dev)) {
+        return;
+    }
+
+    if (!uart_irq_rx_ready(dev)) {
+        return;
+    }
+
+    uint8_t chunk[32];
+    int len = uart_fifo_read(dev, chunk, sizeof(chunk));
+    if (len <= 0) {
+        LOG_WRN("No bytes found in UART FIFO");
+        return;
+    }
+    LOG_HEXDUMP_DBG(chunk, len, "RX chunk");
+
+    struct pn532_data *data = dev->data;
+    if (ring_buf_put(&data->rx_ring_buffer, chunk, len) != len) {
+        LOG_ERR("Failed to put %d bytes into RX ring buffer", len);
+        return;
+    }
+}
 
 static int get_firmware_version(const struct device *dev, struct pn532_fw_version *version)
 {
@@ -52,13 +93,19 @@ static DEVICE_API(pn532, pn532_api) = {
 
 static int pn532_init(const struct device *dev)
 {
-    int ret = 0;
-    if (ret < 0) {
-        LOG_ERR("Transport init failed: %d", ret);
-        return ret;
+    const struct pn532_config *config = dev->config;
+    struct pn532_data *data = dev->data;
+    ring_buf_init(&data->rx_ring_buffer, sizeof(data->rx_buffer), data->rx_buffer);
+
+    if (!device_is_ready(config->uart_dev)) {
+        LOG_ERR("UART device not ready");
+        return -ENODEV;
     }
 
-    LOG_INF("PN532 initialized");
+    uart_irq_callback_set(config->uart_dev, pn532_uart_rx_cb);
+    uart_irq_rx_enable(config->uart_dev);
+
+    LOG_DBG("PN532 UART initialized");
 
     return 0;
 }
