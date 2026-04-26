@@ -3,7 +3,6 @@
 
 description: |
   NXP PN532 NFC Controller connected over UART.
-  This binding supports the PN532 NFC module for reading and writing NFC tags.
 
 compatible: "nxp,pn532"
 

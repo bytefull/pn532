@@ -28,8 +28,12 @@ ZTEST(pn532, test_get_firmware_version)
     zassert_equal(-EINVAL, pn532_get_firmware_version(dev, NULL));
 
     zassert_equal(-EINVAL, pn532_get_firmware_version(NULL, &version));
-    zassert_equal(0, version);
+    zassert_equal(0, version.ic);
+    zassert_equal(0, version.ver);
+    zassert_equal(0, version.rev);
 
     zassert_equal(0, pn532_get_firmware_version(dev, &version));
-    zassert_equal(0x01020304, version);
+    zassert_equal(0x32, version.ic);
+    zassert_equal(0x01, version.ver);
+    zassert_equal(0x06, version.rev);
 }
