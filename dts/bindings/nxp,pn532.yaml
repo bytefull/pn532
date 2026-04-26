@@ -11,5 +11,6 @@ include: [base.yaml, uart-device.yaml]
 
 properties:
   current-speed:
+    type: int
     required: false
     description: UART baudrate for the PN532 (default is 115200)

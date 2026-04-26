@@ -7,25 +7,23 @@
 
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
-#include <zephyr/drivers/i2c.h>
+#include <zephyr/drivers/uart.h>
+#include <zephyr/sys/ring_buffer.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(pn532, CONFIG_PN532_LOG_LEVEL);
 
 #include "pn532.h"
-#include "pn532_transport.h"
-
 
 struct pn532_data {
     uint32_t dummy;
 };
 
 struct pn532_config {
-    const struct device *i2c_dev;
-    uint16_t i2c_addr;
+    const struct device *uart_dev;
 };
 
-static int get_firmware_version(const struct device *dev, uint32_t *version)
+static int get_firmware_version(const struct device *dev, struct pn532_fw_version *version)
 {
     if ((dev == NULL) || (version == NULL)) {
         return -EINVAL;
@@ -41,7 +39,9 @@ static int get_firmware_version(const struct device *dev, uint32_t *version)
     /* 6. Optionally we can send an ACK to the PN532 */
 
     /* TODO: Replace dummy hardcoded value with real implementation */
-    *version = 0x01020304;
+    version->ic = 0x32;
+    version->ver = 0x01;
+    version->rev = 0x06;
 
     return 0;
 }
@@ -67,8 +67,7 @@ static int pn532_init(const struct device *dev)
     static struct pn532_data data_##inst;              \
                                                        \
     static const struct pn532_config config_##inst = { \
-        .i2c_dev = DEVICE_DT_GET(DT_INST_BUS(inst)),   \
-        .i2c_addr = DT_INST_REG_ADDR(inst),            \
+        .uart_dev = DEVICE_DT_GET(DT_INST_BUS(inst)),  \
     };                                                 \
                                                        \
     DEVICE_DT_INST_DEFINE(inst,                        \
