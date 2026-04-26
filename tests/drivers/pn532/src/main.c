@@ -16,7 +16,7 @@ ZTEST_SUITE(pn532, NULL, NULL, NULL, NULL, NULL);
  */
 ZTEST(pn532, test_get_firmware_version)
 {
-    uint32_t version = 0;
+    struct pn532_fw_version version = {0};
     const struct device *dev = DEVICE_DT_GET_ANY(nxp_pn532);
 
     zassert_not_null(dev, "No PN532 device found");
@@ -28,8 +28,12 @@ ZTEST(pn532, test_get_firmware_version)
     zassert_equal(-EINVAL, pn532_get_firmware_version(dev, NULL));
 
     zassert_equal(-EINVAL, pn532_get_firmware_version(NULL, &version));
-    zassert_equal(0, version);
+    zassert_equal(0, version.ic);
+    zassert_equal(0, version.ver);
+    zassert_equal(0, version.rev);
 
     zassert_equal(0, pn532_get_firmware_version(dev, &version));
-    zassert_equal(0x01020304, version);
+    zassert_equal(0x32, version.ic);
+    zassert_equal(0x01, version.ver);
+    zassert_equal(0x06, version.rev);
 }

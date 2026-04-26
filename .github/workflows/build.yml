@@ -5,7 +5,7 @@ name: Build
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
   pull_request:
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        board: [native_sim, nucleo_f767zi]
+        board: [native_sim, b_u585i_iot02a]
 
     steps:
       - name: Checkout module repo

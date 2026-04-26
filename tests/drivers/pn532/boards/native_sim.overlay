@@ -3,11 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-&i2c0 {
+&uart1 {
     status = "okay";
-    pn532: pn532@24 {
+	compatible = "zephyr,native-tty-uart";
+    current-speed = <115200>;
+	serial-port = "/dev/ttyUSB0";
+
+    pn532 {
         compatible = "nxp,pn532";
-        reg = <0x24>;
-        status = "okay";
     };
 };
