@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Bayrem Gharsellaoui
+# Copyright (c) 2026 Bayrem Gharsellaoui
 # SPDX-License-Identifier: Apache-2.0
 
 manifest:
@@ -6,10 +6,10 @@ manifest:
   projects:
     - name: zephyr
       url: https://github.com/zephyrproject-rtos/zephyr
-      revision: v4.1.0
+      revision: v4.3.0
       import:
         name-allowlist:
-          - cmsis
+          - cmsis_6
           - hal_stm32
 
   self:

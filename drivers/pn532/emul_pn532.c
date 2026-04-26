@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Bayrem Gharsellaoui
+ * Copyright (c) 2026 Bayrem Gharsellaoui
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -26,7 +26,7 @@ static int pn532_transfer_i2c(const struct emul *target, struct i2c_msg *msgs, i
     return 0;
 }
 
-static const struct i2c_emul_api pn532_emul_api_i2c = {
+static const struct i2c_emul_api emul_pn532_api_i2c = {
     .transfer = pn532_transfer_i2c,
 };
 
@@ -35,19 +35,21 @@ static int emul_pn532_init(const struct emul *target, const struct device *paren
     ARG_UNUSED(target);
     ARG_UNUSED(parent);
 
+    LOG_INF("Emulated PN532 is initialized");
+
     return 0;
 }
 
-#define PN532_EMUL(n)                                         \
-    static const struct pn532_emul_cfg pn532_emul_cfg_##n = { \
-        .addr = DT_INST_REG_ADDR(n),                          \
-    };                                                        \
-                                                              \
-    EMUL_DT_INST_DEFINE(n,                                    \
-                        emul_pn532_init,                      \
-                        NULL,                                 \
-                        &pn532_emul_cfg_##n,                  \
-                        &pn532_emul_api_i2c,                  \
+#define PN532_EMUL(n)                                   \
+    static const struct pn532_emul_cfg emul_cfg_##n = { \
+        .addr = DT_INST_REG_ADDR(n),                    \
+    };                                                  \
+                                                        \
+    EMUL_DT_INST_DEFINE(n,                              \
+                        emul_pn532_init,                \
+                        NULL,                           \
+                        &emul_cfg_##n,                  \
+                        &emul_pn532_api_i2c,            \
                         NULL)
 
 DT_INST_FOREACH_STATUS_OKAY(PN532_EMUL)

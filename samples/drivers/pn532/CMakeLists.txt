@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Bayrem Gharsellaoui
+# Copyright (c) 2026 Bayrem Gharsellaoui
 # SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.20.0)
