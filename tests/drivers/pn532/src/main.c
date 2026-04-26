@@ -16,7 +16,7 @@ ZTEST_SUITE(pn532, NULL, NULL, NULL, NULL, NULL);
  */
 ZTEST(pn532, test_get_firmware_version)
 {
-    uint32_t version = 0;
+    struct pn532_fw_version version = {0};
     const struct device *dev = DEVICE_DT_GET_ANY(nxp_pn532);
 
     zassert_not_null(dev, "No PN532 device found");

@@ -52,7 +52,7 @@ static DEVICE_API(pn532, pn532_api) = {
 
 static int pn532_init(const struct device *dev)
 {
-    int ret = pn532_transport_init(dev);
+    int ret = 0;
     if (ret < 0) {
         LOG_ERR("Transport init failed: %d", ret);
         return ret;

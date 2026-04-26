@@ -13,4 +13,4 @@ manifest:
           - hal_stm32
 
   self:
-    path: pn532-zephyr-driver
+    path: pn532

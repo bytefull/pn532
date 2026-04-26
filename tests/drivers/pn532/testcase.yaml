@@ -10,5 +10,4 @@ tests:
     tags:
       - drivers
       - pn532
-    extra_configs:
-      - CONFIG_EMUL_PN532=y
+

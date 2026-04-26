@@ -17,7 +17,7 @@
  * @brief A custom driver class to interface with the PN532 NFC module
  *
  * This driver provides an interface to the PN532
- * NFC controller over I2C.
+ * NFC controller over UART.
  *
  * It exposes a custom device driver API built using Zephyr's __subsystem and
  * z_impl_ mechanism, enabling structured and extendable access to PN532 features.
@@ -35,6 +35,13 @@
  * with `__subsystem` and follow the `${class}_driver_api` naming scheme.
  */
 
+/* Firmware version structure */
+struct pn532_fw_version {
+    uint8_t ic;  /* PN5xx IC type (e.g. 0x32 for PN532) */
+    uint8_t ver; /* Firmware version */
+    uint8_t rev; /* Firmware revision */
+};
+
 /** @brief PN532 driver class operations */
 __subsystem struct pn532_driver_api {
     /**
@@ -45,14 +52,14 @@ __subsystem struct pn532_driver_api {
      * firmware version, and revision.
      *
      * @param dev Pointer to the PN532 device instance.
-     * @param version Pointer to a uint32_t where the firmware version will be stored.
+     * @param version Pointer to a pn532_fw_version struct to store the parsed firmware version.
      *
      * @retval 0 if successful.
      * @retval -EIO if communication with the device fails.
      * @retval -EINVAL if @p version is NULL.
      * @retval -errno Other negative errno codes on failure.
      */
-    int (*pn532_get_firmware_version)(const struct device *dev, uint32_t *version);
+    int (*pn532_get_firmware_version)(const struct device *dev, struct pn532_fw_version *version);
 };
 
 /** @} */
@@ -81,9 +88,9 @@ __subsystem struct pn532_driver_api {
  * @retval -EINVAL if @p dev or @p version is NULL.
  * @retval -errno Other negative errno codes on failure.
  */
-__syscall int pn532_get_firmware_version(const struct device *dev, uint32_t *version);
+__syscall int pn532_get_firmware_version(const struct device *dev, struct pn532_fw_version *version);
 
-static inline int z_impl_pn532_get_firmware_version(const struct device *dev, uint32_t *version)
+static inline int z_impl_pn532_get_firmware_version(const struct device *dev, struct pn532_fw_version *version)
 {
     if ((dev == NULL) || (version == NULL)) {
         return -EINVAL;
