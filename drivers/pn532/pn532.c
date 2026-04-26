@@ -92,6 +92,7 @@ struct pn532_data {
     struct ring_buf rx_ring_buffer;
     uint8_t rx_buffer[PN532_RX_RING_BUFFER_SIZE];
     uint8_t tx_buffer[PN532_MAX_FRAME_SIZE];
+    int8_t in_listed_tag;
 };
 
 struct pn532_config {
@@ -414,8 +415,169 @@ static int get_firmware_version(const struct device *pn532_dev, struct pn532_fw_
     return 0;
 }
 
+
+static int in_list_passive_target(const struct device *pn532_dev)
+{
+    if (pn532_dev == NULL) {
+        LOG_ERR("Invalid PN532 device pointer");
+        return -1;
+    }
+
+    struct pn532_data *pn532_data = pn532_dev->data;
+
+    LOG_DBG("Sending InListPassiveTarget command");
+    pn532_data->tx_buffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
+    pn532_data->tx_buffer[1] = 0x01;
+    pn532_data->tx_buffer[2] = 0x00;
+    if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, 3, 1200) < 0) {
+        return -1;
+    }
+    /* Wait for a little bit until we receive the 24 bytes of the InListPassiveTarget response */
+    if (pn532_wait_for_rx(pn532_dev, 24, 1200) < 0) {
+        LOG_ERR("Timeout waiting for InListPassiveTarget response");
+        return -1;
+    }
+    /* Read the inListPassiveTarget response */
+    uint8_t response_buf[24] = {0};
+    if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf, 24) != 24) {
+        LOG_ERR("Failed to read inListPassiveTarget response");
+        return -1;
+    }
+    /* Verify response preamble */
+    if ((response_buf[0] != PN532_PREAMBLE) ||
+        (response_buf[1] != PN532_STARTCODE1) ||
+        (response_buf[2] != PN532_STARTCODE2)) {
+        LOG_ERR("Preamble missing");
+        return -1;
+    }
+    /* Verify response length */
+    uint8_t length = response_buf[3];
+    if (response_buf[4] != (uint8_t)(~length + 1)) {
+        LOG_ERR("Length check invalid");
+        LOG_DBG("Expected: 0x%02X, Got: 0x%02X", (uint8_t)(~length + 1), response_buf[4]);
+        return -1;
+    }
+    /* Verify response code */
+    if ((response_buf[5] != PN532_PN532TOHOST) ||
+        (response_buf[6] != PN532_RESPONSE_INLISTPASSIVETARGET)) {
+        LOG_ERR("Unexpected response to inlist passive host");
+        return -1;
+    }
+    /* Verify number of targets inlisted */
+    if (response_buf[7] != 1) {
+        LOG_ERR("Unhandled number of targets inlisted");
+        LOG_DBG("Number of tags inlisted: 0x%02X", response_buf[7]);
+        return -1;
+    }
+    /* Save the listed tag */
+    pn532_data->in_listed_tag = response_buf[8];
+    LOG_DBG("Tag number: %d", pn532_data->in_listed_tag);
+    LOG_DBG("InListPassiveTarget OK");
+    return 0;
+}
+
+static int in_data_exchange(const struct device *pn532_dev, uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength)
+{
+    if (pn532_dev == NULL) {
+        LOG_ERR("Invalid PN532 device pointer");
+        return -1;
+    }
+
+    if (send == NULL) {
+        LOG_ERR("Invalid command buffer");
+        return -1;
+    }
+
+    if (sendLength == 0) {
+        LOG_ERR("Invalid command length");
+        return -1;
+    }
+
+    if (response == NULL) {
+        LOG_ERR("Invalid response buffer");
+        return -1;
+    }
+
+    if ((responseLength == NULL) || (*responseLength == 0)) {
+        LOG_ERR("Invalid response length");
+        return -1;
+    }
+
+    LOG_DBG("Sending InDataExchange command");
+    struct pn532_data *pn532_data = pn532_dev->data;
+    
+    pn532_data->tx_buffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    pn532_data->tx_buffer[1] = pn532_data->in_listed_tag;
+    for (uint8_t i = 0; i < sendLength; ++i) {
+        pn532_data->tx_buffer[i + 2] = send[i];
+    }
+    if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, sendLength + 2, 1000) < 0) {
+        return -1;
+    }
+    /* We can ignore the timeout here and only raise a warning
+     * since the user doesn't necessarily know
+     * how many bytes to expect in the response
+     */
+    if (pn532_wait_for_rx(pn532_dev, *responseLength+10, 1000) < 0) {
+        LOG_WRN("Timeout waiting for inDataExchange response, expected %d bytes but got %d bytes",
+                *responseLength + 10,
+                ring_buf_size_get(&pn532_data->rx_ring_buffer));
+    }
+    /* We can also ignore the length check here and only raise a warning
+     * since the user doesn't necessarily know
+     * how many bytes to expect in the response
+     */
+    uint8_t response_buf[128] = {0};
+    uint32_t len = ring_buf_get(&pn532_data->rx_ring_buffer, response_buf, sizeof(response_buf));
+    if (len != *responseLength + 10) {
+        LOG_WRN("Failed to read inDataExchange response, Expected %d bytes but got %d",
+                *responseLength + 10,
+                len);
+    }
+    /* Verify response preamble */
+    if ((response_buf[0] != PN532_PREAMBLE) ||
+        (response_buf[1] != PN532_STARTCODE1) ||
+        (response_buf[2] != PN532_STARTCODE2)) {
+        LOG_ERR("Invalid response preamble");
+        return -1;
+    }
+    /* Verify response length */
+    uint8_t length = response_buf[3];
+    if (response_buf[4] != (uint8_t)(~length + 1)) {
+        LOG_ERR("Length check invalid");
+        LOG_DBG("Expected: 0x%02X, Got: 0x%02X", (uint8_t)(~length + 1), response_buf[4]);
+        return -1;
+    }
+    /* Verify response code */
+    if ((response_buf[5] != PN532_PN532TOHOST) ||
+        (response_buf[6] != PN532_RESPONSE_INDATAEXCHANGE)) {
+        LOG_ERR("Invalid response code");
+        return -1;
+    }
+    /* Verify status code */
+    if ((response_buf[7] & 0x3f) != 0) {
+        LOG_ERR("Status code indicates an error, expected 0x00 but got 0x%02X",
+                response_buf[7] & 0x3f);
+        return -1;
+    }
+    /* Save response length */
+    length -= 3;
+    if (length > *responseLength) {
+        length = *responseLength;
+    }
+    *responseLength = length;
+    /* Save response data */
+    for (uint8_t i = 0; i < length; ++i) {
+        response[i] = response_buf[8 + i];
+    }
+    LOG_DBG("InDataExchange OK");
+    return 0;
+}
+
 static DEVICE_API(pn532, pn532_api) = {
     .pn532_get_firmware_version = &get_firmware_version,
+    .pn532_in_list_passive_target = &in_list_passive_target,
+    .pn532_in_data_exchange = &in_data_exchange,
 };
 
 static int pn532_init(const struct device *dev)
@@ -423,6 +585,7 @@ static int pn532_init(const struct device *dev)
     const struct pn532_config *config = dev->config;
     struct pn532_data *pn532_data = dev->data;
 
+    pn532_data->in_listed_tag = -1;
     ring_buf_init(&pn532_data->rx_ring_buffer, sizeof(pn532_data->rx_buffer), pn532_data->rx_buffer);
 
     if (!device_is_ready(config->uart_dev)) {

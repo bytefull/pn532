@@ -60,6 +60,43 @@ __subsystem struct pn532_driver_api {
      * @retval -errno Other negative errno codes on failure.
      */
     int (*pn532_get_firmware_version)(const struct device *dev, struct pn532_fw_version *version);
+
+    /**
+    * @brief InListPassiveTarget command to detect and list nearby NFC tags.
+    *
+    * This function sends the InListPassiveTarget command to the PN532 device,
+    * which attempts to detect nearby NFC tags. If a tag is detected, it is
+    * "inlisted" and its information is stored for subsequent interactions.
+    *
+    * @param dev Pointer to the PN532 device instance.
+    *
+    * @retval 0 if a tag was successfully detected and inlisted.
+    * @retval -EIO if communication with the device fails.
+    * @retval -EINVAL if @p dev is NULL.
+    * @retval -errno Other negative errno codes on failure.
+    */
+    int (*pn532_in_list_passive_target)(const struct device *dev);
+
+    /**
+     * @brief InDataExchange command to exchange data with the inlisted tag.
+     *
+     * This function sends the InDataExchange command to the PN532 device, allowing
+     * the caller to exchange data with the currently inlisted NFC tag. The command
+     * takes a buffer of data to send to the tag and a buffer to receive the response.
+     *
+     * @param dev Pointer to the PN532 device instance.
+     * @param send Buffer containing data to send to the tag.
+     * @param sendLength Length of the data to send.
+     * @param response Buffer to store the response from the tag.
+     * @param responseLength Pointer to a variable that initially contains the size of
+     * the response buffer, and is updated with the actual length of the response received.
+     *
+     * @retval 0 if data exchange was successful.
+     * @retval -EIO if communication with the device fails.
+     * @retval -EINVAL if any pointer parameter is NULL or if sendLength is 0.
+     * @retval -errno Other negative errno codes on failure.
+     */
+    int (*pn532_in_data_exchange)(const struct device *dev, uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
 };
 
 /** @} */
@@ -90,7 +127,8 @@ __subsystem struct pn532_driver_api {
  */
 __syscall int pn532_get_firmware_version(const struct device *dev, struct pn532_fw_version *version);
 
-static inline int z_impl_pn532_get_firmware_version(const struct device *dev, struct pn532_fw_version *version)
+static inline int z_impl_pn532_get_firmware_version(const struct device *dev,
+    struct pn532_fw_version *version)
 {
     if ((dev == NULL) || (version == NULL)) {
         return -EINVAL;
@@ -101,6 +139,63 @@ static inline int z_impl_pn532_get_firmware_version(const struct device *dev, st
     }
 
     return DEVICE_API_GET(pn532, dev)->pn532_get_firmware_version(dev, version);
+}
+
+__syscall int pn532_in_list_passive_target(const struct device *dev);
+
+/**
+ * @brief Send the InListPassiveTarget command to the PN532 to detect nearby NFC tags.
+ * 
+ * @param dev Pointer to the PN532 device instance.
+ * 
+ * @retval 0 if a tag was successfully detected and inlisted.
+ * @retval -EIO if communication with the device fails.
+ * @retval -EINVAL if @p dev is NULL.
+ */
+static inline int z_impl_pn532_in_list_passive_target(const struct device *dev)
+{
+    if (dev == NULL) {
+        return -EINVAL;
+    }
+
+    if (!DEVICE_API_IS(pn532, dev)) {
+        return -ENOTSUP;
+    }
+
+    return DEVICE_API_GET(pn532, dev)->pn532_in_list_passive_target(dev);
+}
+
+__syscall int pn532_in_data_exchange(const struct device *dev, uint8_t *send, uint8_t sendLength,
+    uint8_t *response, uint8_t *responseLength);
+
+/**
+ * @brief Send the InDataExchange command to the PN532 to exchange data with the inlisted tag.
+ *
+ * @param dev Pointer to the PN532 device instance.
+ * @param send Buffer containing data to send to the tag.
+ * @param sendLength Length of the data to send.
+ * @param response Buffer to store the response from the tag.
+ * @param responseLength Pointer to a variable that initially contains the size of
+ * the response buffer, and is updated with the actual length of the response received.
+ *
+ * @retval 0 if data exchange was successful.
+ * @retval -EIO if communication with the device fails.
+ * @retval -EINVAL if any pointer parameter is NULL or if sendLength is 0.
+ */
+static inline int z_impl_pn532_in_data_exchange(const struct device *dev, uint8_t *send,
+    uint8_t sendLength, uint8_t *response, uint8_t *responseLength)
+{
+    if ((dev == NULL) || (send == NULL) || (response == NULL) ||
+        (responseLength == NULL) || (sendLength == 0)) {
+        return -EINVAL;
+    }
+
+    if (!DEVICE_API_IS(pn532, dev)) {
+        return -ENOTSUP;
+    }
+
+    return DEVICE_API_GET(pn532, dev)->pn532_in_data_exchange(dev, send, sendLength, response,
+        responseLength);
 }
 
 #include <syscalls/pn532.h>
