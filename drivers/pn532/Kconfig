@@ -18,7 +18,7 @@ config PN532_LOG_LEVEL
 
 config PN532_INIT_PRIORITY
     int "PN532 device drivers init priority"
-    default KERNEL_INIT_PRIORITY_DEVICE
+    default 60
     help
       PN532 device drivers init priority.
 
