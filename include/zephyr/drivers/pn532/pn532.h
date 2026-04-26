@@ -97,6 +97,21 @@ __subsystem struct pn532_driver_api {
      * @retval -errno Other negative errno codes on failure.
      */
     int (*pn532_in_data_exchange)(const struct device *dev, uint8_t *send, uint8_t sendLength, uint8_t *response, uint8_t *responseLength);
+
+    /**
+     * @brief Set the serial baud rate of the PN532 device.
+     *
+     * This function configures the serial baud rate of the PN532 device.
+     *
+     * @param dev Pointer to the PN532 device instance.
+     * @param baudrate The desired baud rate.
+     *
+     * @retval 0 if successful.
+     * @retval -EIO if communication with the device fails.
+     * @retval -EINVAL if @p dev is NULL or @p baudrate is unsupported.
+     * @retval -errno Other negative errno codes on failure.
+     */
+    int (*pn532_set_serial_baudrate)(const struct device *dev, uint32_t baudrate);
 };
 
 /** @} */
@@ -196,6 +211,31 @@ static inline int z_impl_pn532_in_data_exchange(const struct device *dev, uint8_
 
     return DEVICE_API_GET(pn532, dev)->pn532_in_data_exchange(dev, send, sendLength, response,
         responseLength);
+}
+
+__syscall int pn532_set_serial_baudrate(const struct device *dev, uint32_t baudrate);
+
+/**
+ * @brief Set the serial baud rate of the PN532 device.
+ *
+ * @param dev Pointer to the PN532 device instance.
+ * @param baudrate The desired baud rate.
+ *
+ * @retval 0 if successful.
+ * @retval -EIO if communication with the device fails.
+ * @retval -EINVAL if @p dev is NULL or @p baudrate is unsupported.
+ */
+static inline int z_impl_pn532_set_serial_baudrate(const struct device *dev, uint32_t baudrate)
+{
+    if (dev == NULL) {
+        return -EINVAL;
+    }
+
+    if (!DEVICE_API_IS(pn532, dev)) {
+        return -ENOTSUP;
+    }
+
+    return DEVICE_API_GET(pn532, dev)->pn532_set_serial_baudrate(dev, baudrate);
 }
 
 #include <syscalls/pn532.h>

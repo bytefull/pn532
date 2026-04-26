@@ -574,10 +574,114 @@ static int in_data_exchange(const struct device *pn532_dev, uint8_t *send, uint8
     return 0;
 }
 
+static int set_serial_baudrate(const struct device *pn532_dev, uint32_t baudrate)
+{
+    uint8_t baudrate_code;
+
+    if (pn532_dev == NULL) {
+        LOG_ERR("Invalid PN532 device pointer");
+        return -1;
+    }
+    struct pn532_data *pn532_data = pn532_dev->data;
+
+    switch (baudrate)
+    {
+    case 9600:
+        baudrate_code = PN532_BAUDRATE_9600;
+        break;
+    case 19200:
+        baudrate_code = PN532_BAUDRATE_19200;
+        break;
+    case 38400:
+        baudrate_code = PN532_BAUDRATE_38400;
+        break;
+    case 57600:
+        baudrate_code = PN532_BAUDRATE_57600;
+        break;
+    case 115200:
+        baudrate_code = PN532_BAUDRATE_115200;
+        break;
+    case 230400:
+        baudrate_code = PN532_BAUDRATE_230400;
+        break;
+    case 460800:
+        baudrate_code = PN532_BAUDRATE_460800;
+        break;
+    case 921600:
+        baudrate_code = PN532_BAUDRATE_921600;
+        break;
+    default:
+        LOG_ERR("Unsupported baud rate: %d", baudrate);
+        return -1;
+    }
+
+    LOG_DBG("Sending SetSerialBaudRate command");
+    pn532_data->tx_buffer[0] = PN532_COMMAND_SETSERIALBAUDRATE;
+    pn532_data->tx_buffer[1] = baudrate_code;
+    if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, 2, 100) < 0) {
+        return -1;
+    }
+    /* Wait for a little bit until we receive the 8 bytes: size of the SetSerialBaudRate response */
+    if (pn532_wait_for_rx(pn532_dev, 8, 100) < 0) {
+        LOG_ERR("Timeout waiting for SetSerialBaudRate response");
+        return -1;
+    }
+    // /* Read the SetSerialBaudRate response */
+    uint8_t response_buf[8] = {0};
+    if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf, 8) != 8) {
+        LOG_ERR("Failed to read SetSerialBaudRate response");
+        return -1;
+    }
+    /* Verify response buffer */
+    if ((response_buf[0] != PN532_PREAMBLE) ||
+        (response_buf[1] != PN532_STARTCODE1) ||
+        (response_buf[2] != PN532_STARTCODE2)) {
+        LOG_ERR("Preamble missing");
+        return -1;
+    }
+
+    if ((response_buf[5] != PN532_PN532TOHOST ) ||
+        (response_buf[6] != PN532_RESPONSE_SETSERIALBAUDRATE)) {
+        LOG_ERR("Invalid SetSerialBaudRate response: 0x%02X", response_buf[5]);
+        return -1;
+    }
+
+    /* Per datasheet: PN532 switches AFTER receiving our ACK.
+     * Send ACK at 115200, then switch host side. */
+    pn532_uart_send(pn532_dev, PN532_ACK, sizeof(PN532_ACK));
+
+    /* Wait >= 200 µs as required by the datasheet before next command */
+    k_usleep(500);
+
+    /* Switch host UART to the new baud rate */
+    const struct pn532_config *config = pn532_dev->config;
+    const struct device *uart_dev = config->uart_dev;
+    struct uart_config cfg = {0};
+    int ret = uart_config_get(uart_dev, &cfg);
+    if (ret) {
+        LOG_ERR("uart_config_get failed: %d", ret);
+        return -1;
+    }
+    cfg.baudrate = baudrate;
+    ret = uart_configure(uart_dev, &cfg);
+    if (ret) {
+        LOG_ERR("uart_configure(%d) failed: %d", baudrate, ret);
+        return -1;
+    }
+    LOG_INF("Host UART switched to %d", baudrate);
+
+    /* Flush any garbage from the baud-rate transition */
+    k_msleep(2);
+
+    LOG_DBG("SetSerialBaudRate OK");
+    return 0;
+}
+
 static DEVICE_API(pn532, pn532_api) = {
     .pn532_get_firmware_version = &get_firmware_version,
     .pn532_in_list_passive_target = &in_list_passive_target,
     .pn532_in_data_exchange = &in_data_exchange,
+    .pn532_set_serial_baudrate = &set_serial_baudrate
 };
 
 static int pn532_init(const struct device *dev)
