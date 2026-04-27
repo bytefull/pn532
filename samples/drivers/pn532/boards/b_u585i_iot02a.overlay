@@ -9,5 +9,11 @@
 
     pn532 {
         compatible = "nxp,pn532";
+
+        /* Optional reset line */
+        // irq-gpios = <&gpioc 5 GPIO_ACTIVE_HIGH>;
+
+        /* Optional reset line */
+        // reset-gpios = <&gpioc 4 GPIO_ACTIVE_LOW>;
     };
 };
