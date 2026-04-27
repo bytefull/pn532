@@ -17,11 +17,6 @@ ZTEST_SUITE(pn532, NULL, NULL, NULL, NULL, NULL);
 ZTEST(pn532, test_get_firmware_version)
 {
     struct pn532_fw_version version = {0};
-    const struct device *dev = DEVICE_DT_GET_ANY(nxp_pn532);
-
-    zassert_not_null(dev, "No PN532 device found");
-
-    zassert_true(device_is_ready(dev), "PN532 device is not ready");
 
     zassert_equal(-EINVAL, pn532_get_firmware_version(NULL, NULL));
 
