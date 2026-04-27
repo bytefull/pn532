@@ -16,6 +16,7 @@ ZTEST_SUITE(pn532, NULL, NULL, NULL, NULL, NULL);
  */
 ZTEST(pn532, test_get_firmware_version)
 {
+	const struct device *dev = DEVICE_DT_GET_ONE(nxp_pn532);
     struct pn532_fw_version version = {0};
 
     zassert_equal(-EINVAL, pn532_get_firmware_version(NULL, NULL));
