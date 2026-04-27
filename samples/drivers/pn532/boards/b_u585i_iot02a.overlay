@@ -3,11 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-&uart1 {
+&usart3 {
     status = "okay";
-    compatible = "zephyr,native-tty-uart";
     current-speed = <115200>;
-    serial-port = "/dev/ttyUSB0";
 
     pn532 {
         compatible = "nxp,pn532";
