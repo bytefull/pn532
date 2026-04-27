@@ -2,14 +2,22 @@
 # SPDX-License-Identifier: Apache-2.0
 
 description: |
-  NXP PN532 NFC Controller connected over UART.
+  NXP PN532 NFC controller connected over UART (HSU mode).
+  Supports communication with NFC tags and devices.
 
 compatible: "nxp,pn532"
 
 include: [base.yaml, uart-device.yaml]
 
 properties:
-  current-speed:
-    type: int
+  irq-gpios:
+    type: phandle-array
     required: false
-    description: UART baudrate for the PN532 (default is 115200)
+    description: |
+      Optional IRQ line from the PN532 indicating data ready.
+
+  reset-gpios:
+    type: phandle-array
+    required: false
+    description: |
+      Optional reset pin for the PN532.

@@ -11,5 +11,6 @@
 
     pn532 {
         compatible = "nxp,pn532";
+        /* No IRQ or Reset pin used in native_sim */
     };
 };
