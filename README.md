@@ -10,3 +10,10 @@
 [![License](https://img.shields.io/github/license/bytefull/pn532)](https://github.com/bytefull/pn532/blob/main/LICENSE)
 
 The PN532 Zephyr driver is an out-of-tree driver supporting the NXP PN532 NFC module. It provides a custom API for communicating with the module with extensibility for further NFC operations.
+
+## ✅ TODO
+
+- [ ] Refactor driver to prepare for unit tests
+- [ ] Separate between unit tests and integration tests
+- [ ] Make unit tests purely software
+- [ ] Make integration tests use `native-pty-uart` to communicate with a python script that will send fake responses
