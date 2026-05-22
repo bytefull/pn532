@@ -98,12 +98,10 @@ __subsystem struct pn532_driver_api {
 	 * @retval -errno Other negative errno codes on failure.
 	 */
 	int (*pn532_in_data_exchange)(const struct device *dev, uint8_t *send, uint8_t send_length,
-				      uint8_t *response, uint8_t *response_length);
+					  uint8_t *response, uint8_t *response_length);
 
 	/**
 	 * @brief Set the serial baud rate of the PN532 device.
-	 *
-	 * This function configures the serial baud rate of the PN532 device.
 	 *
 	 * @param dev Pointer to the PN532 device instance.
 	 * @param baudrate The desired baud rate.
@@ -115,7 +113,28 @@ __subsystem struct pn532_driver_api {
 	 */
 	int (*pn532_set_serial_baudrate)(const struct device *dev, uint32_t baudrate);
 
+	/**
+	 * @brief Write a value to the PN532 internal GPIO
+	 *
+	 * @param dev Pointer to the PN532 device instance.
+	 * @param value Pin number to write to
+	 *
+	 * @retval 0 if successful.
+	 * @retval -EINVAL if @p dev is NULL.
+	 * @retval -ENOTSUP if this API is unsupported.
+	 */
 	int (*pn532_gpio_pin_set)(const struct device *pn532_dev, int value);
+
+	/**
+	 * @brief Read the value of the PN532 internal GPIO
+	 *
+	 * @param dev Pointer to the PN532 device instance.
+	 * @param value Pin number to read from
+	 *
+	 * @retval the read value if successful.
+	 * @retval -EINVAL if @p dev is NULL.
+	 * @retval -ENOTSUP if this API is unsupported.
+	 */
 	int (*pn532_gpio_pin_get)(const struct device *pn532_dev);
 };
 
@@ -149,7 +168,7 @@ __syscall int pn532_get_firmware_version(const struct device *dev,
 					 struct pn532_fw_version *version);
 
 static inline int z_impl_pn532_get_firmware_version(const struct device *dev,
-						    struct pn532_fw_version *version)
+							struct pn532_fw_version *version)
 {
 	if ((dev == NULL) || (version == NULL)) {
 		return -EINVAL;
@@ -187,7 +206,7 @@ static inline int z_impl_pn532_in_list_passive_target(const struct device *dev)
 }
 
 __syscall int pn532_in_data_exchange(const struct device *dev, uint8_t *send, uint8_t send_length,
-				     uint8_t *response, uint8_t *response_length);
+					 uint8_t *response, uint8_t *response_length);
 
 /**
  * @brief Send the InDataExchange command to the PN532 to exchange data with the inlisted tag.
@@ -208,7 +227,7 @@ static inline int z_impl_pn532_in_data_exchange(const struct device *dev, uint8_
 						uint8_t *response_length)
 {
 	if ((dev == NULL) || (send == NULL) || (response == NULL) || (response_length == NULL) ||
-	    (send_length == 0)) {
+		(send_length == 0)) {
 		return -EINVAL;
 	}
 
@@ -243,6 +262,52 @@ static inline int z_impl_pn532_set_serial_baudrate(const struct device *dev, uin
 	}
 
 	return DEVICE_API_GET(pn532, dev)->pn532_set_serial_baudrate(dev, baudrate);
+}
+
+/**
+ * @brief Write a value to the PN532 internal GPIO
+ *
+ * @param dev Pointer to the PN532 device instance.
+ * @param value Pin number to write to
+ *
+ * @retval 0 if successful.
+ * @retval -EINVAL if @p dev is NULL.
+ * @retval -ENOTSUP if this API is unsupported.
+ */
+static inline int z_impl_pn532_gpio_pin_set(const struct device *dev, int value)
+{
+	if (dev == NULL) {
+		return -EINVAL;
+	}
+
+	if (!DEVICE_API_IS(pn532, dev)) {
+		return -ENOTSUP;
+	}
+
+	return DEVICE_API_GET(pn532, dev)->pn532_gpio_pin_set(dev, value);
+}
+
+/**
+ * @brief Read the value of the PN532 internal GPIO
+ *
+ * @param dev Pointer to the PN532 device instance.
+ * @param value Pin number to read from
+ *
+ * @retval the read value if successful.
+ * @retval -EINVAL if @p dev is NULL.
+ * @retval -ENOTSUP if this API is unsupported.
+ */
+static inline int z_impl_pn532_gpio_pin_get(const struct device *pn532_dev)
+{
+	if (dev == NULL) {
+		return -EINVAL;
+	}
+
+	if (!DEVICE_API_IS(pn532, dev)) {
+		return -ENOTSUP;
+	}
+
+	return DEVICE_API_GET(pn532, dev)->pn532_gpio_pin_get(dev);
 }
 
 #include <syscalls/pn532.h>
