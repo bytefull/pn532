@@ -29,6 +29,8 @@ LOG_MODULE_REGISTER(pn532, CONFIG_PN532_LOG_LEVEL);
 #define PN532_COMMAND_INLISTPASSIVETARGET (0x4A) /* List passive target */
 #define PN532_COMMAND_INDATAEXCHANGE      (0x40) /* Data exchange */
 #define PN532_COMMAND_SETSERIALBAUDRATE   (0x10) /* Set serial baud rate */
+#define PN532_COMMAND_READGPIO            (0x0C) /* Read GPIO */
+#define PN532_COMMAND_WRITEGPIO           (0x0E) /* Write GPIO */
 
 /* PN532 Responses */
 #define PN532_RESPONSE_INLISTPASSIVETARGET (0x4B) /* List passive target */
@@ -58,8 +60,15 @@ LOG_MODULE_REGISTER(pn532, CONFIG_PN532_LOG_LEVEL);
 #define PN532_BAUDRATE_460800  (0x06) /* 460.8 kbaud */
 #define PN532_BAUDRATE_921600  (0x07) /* 921600 baud */
 #define PN532_BAUDRATE_1288000 (0x08) /* 1.288 Mbaud */
-
 #define PN532_DEFAULT_BAUDRATE (PN532_BAUDRATE_115200)
+
+#define PN532_GPIO_VALIDATIONBIT (0x80) /* GPIO validation bit */
+#define PN532_GPIO_P30           (0)    /* GPIO 30 */
+#define PN532_GPIO_P31           (1)    /* GPIO 31 */
+#define PN532_GPIO_P32           (2)    /* GPIO 32 */
+#define PN532_GPIO_P33           (3)    /* GPIO 33 */
+#define PN532_GPIO_P34           (4)    /* GPIO 34 */
+#define PN532_GPIO_P35           (5)    /* GPIO 35 */
 
 #define PN532_MAX_FRAME_SIZE      (64)
 #define PN532_RX_RING_BUFFER_SIZE (256)
@@ -674,10 +683,28 @@ static int set_serial_baudrate(const struct device *pn532_dev, uint32_t baudrate
 	return 0;
 }
 
+static int pn532_gpio_pin_set(const struct device *pn532_dev, int value)
+{
+	ARG_UNUSED(pn532_dev);
+	ARG_UNUSED(value);
+
+	return 0;
+}
+
+static int pn532_gpio_pin_get(const struct device *pn532_dev)
+{
+	ARG_UNUSED(pn532_dev);
+
+	return 0;
+
+}
+
 static DEVICE_API(pn532, pn532_api) = {.pn532_get_firmware_version = &get_firmware_version,
 				       .pn532_in_list_passive_target = &in_list_passive_target,
 				       .pn532_in_data_exchange = &in_data_exchange,
-				       .pn532_set_serial_baudrate = &set_serial_baudrate};
+				       .pn532_set_serial_baudrate = &set_serial_baudrate,
+					   .pn532_gpio_pin_set = &gpio_pin_set,
+					   .pn532_gpio_pin_get = &gpio_pin_get}
 
 static int pn532_init(const struct device *dev)
 {

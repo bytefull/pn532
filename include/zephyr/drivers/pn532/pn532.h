@@ -114,6 +114,9 @@ __subsystem struct pn532_driver_api {
 	 * @retval -errno Other negative errno codes on failure.
 	 */
 	int (*pn532_set_serial_baudrate)(const struct device *dev, uint32_t baudrate);
+
+	int (*pn532_gpio_pin_set)(const struct device *pn532_dev, int value);
+	int (*pn532_gpio_pin_get)(const struct device *pn532_dev);
 };
 
 /** @} */
