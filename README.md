@@ -13,8 +13,8 @@ The PN532 Zephyr driver is an out-of-tree driver supporting the NXP PN532 NFC mo
 
 ## ✅ TODO
 
-- [ ] Add PN532 GPIO control
-- [ ] Add reset and irq gpio to binding and dts and make them optional
+- [x] Add PN532 GPIO control
+- [ ] Add reset and irq gpio to driver and make them optional
 - [ ] Refactor driver to prepare for unit tests
 - [ ] Separate between unit tests and integration tests
 - [ ] Make unit tests purely software

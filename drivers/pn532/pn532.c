@@ -696,7 +696,6 @@ static int pn532_gpio_pin_get(const struct device *pn532_dev)
 	ARG_UNUSED(pn532_dev);
 
 	return 0;
-
 }
 
 static DEVICE_API(pn532, pn532_api) = {.pn532_get_firmware_version = &get_firmware_version,
