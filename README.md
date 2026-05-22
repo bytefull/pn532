@@ -5,6 +5,7 @@
 [![Coverage](https://codecov.io/gh/bytefull/pn532/branch/codecov/graph/badge.svg)](https://codecov.io/gh/bytefull/pn532)
 [![GitHub release](https://img.shields.io/github/v/release/bytefull/pn532)](https://github.com/bytefull/pn532/releases)
 [![Zephyr Compatibility](https://img.shields.io/badge/Zephyr-v4.4.0-blue)](https://github.com/zephyrproject-rtos/zephyr/releases/tag/v4.4.0)
+[![Zephyr SDK Compatibility](https://img.shields.io/github/v/release/zephyrproject-rtos/sdk-ng)](https://github.com/zephyrproject-rtos/sdk-ng/releases)
 [![GitHub issues](https://img.shields.io/github/issues/bytefull/pn532)](https://github.com/bytefull/pn532/issues)
 [![License](https://img.shields.io/github/license/bytefull/pn532)](https://github.com/bytefull/pn532/blob/main/LICENSE)
 
