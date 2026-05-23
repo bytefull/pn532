@@ -62,13 +62,11 @@ LOG_MODULE_REGISTER(pn532, CONFIG_PN532_LOG_LEVEL);
 #define PN532_BAUDRATE_1288000 (0x08) /* 1.288 Mbaud */
 #define PN532_DEFAULT_BAUDRATE (PN532_BAUDRATE_115200)
 
-#define PN532_GPIO_VALIDATIONBIT (0x80) /* GPIO validation bit */
-#define PN532_GPIO_P30           (0)    /* GPIO 30 */
-#define PN532_GPIO_P31           (1)    /* GPIO 31 */
-#define PN532_GPIO_P32           (2)    /* GPIO 32 */
-#define PN532_GPIO_P33           (3)    /* GPIO 33 */
-#define PN532_GPIO_P34           (4)    /* GPIO 34 */
-#define PN532_GPIO_P35           (5)    /* GPIO 35 */
+/* GPIO validation bit */
+#define PN532_GPIO_VALIDATIONBIT (0x80)
+/* P32 and P34 are not defined in header file because they are reserved and must always stay high */
+#define PN532_GPIO_P32 BIT(2)
+#define PN532_GPIO_P34 BIT(4)
 
 #define PN532_MAX_FRAME_SIZE      (64)
 #define PN532_RX_RING_BUFFER_SIZE (256)
@@ -683,7 +681,7 @@ static int set_serial_baudrate(const struct device *pn532_dev, uint32_t baudrate
 	return 0;
 }
 
-static int pn532_gpio_write(const struct device *pn532_dev, uint8_t pins)
+static int gpio_write(const struct device *pn532_dev, uint8_t pins)
 {
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
@@ -730,7 +728,7 @@ static int pn532_gpio_write(const struct device *pn532_dev, uint8_t pins)
 	return 0;
 }
 
-static int pn532_gpio_read(const struct device *pn532_dev, uint8_t *pins)
+static int gpio_read(const struct device *pn532_dev, uint8_t *pins)
 {
 	if ((pn532_dev == NULL) || (pins == NULL)) {
 		LOG_ERR("Invalid parameter");
@@ -778,8 +776,8 @@ static DEVICE_API(pn532, pn532_api) = {
 	.pn532_in_list_passive_target = &in_list_passive_target,
 	.pn532_in_data_exchange = &in_data_exchange,
 	.pn532_set_serial_baudrate = &set_serial_baudrate,
-	.pn532_gpio_write = &pn532_gpio_write,
-	.pn532_gpio_read = &pn532_gpio_read,
+	.pn532_gpio_write = &gpio_write,
+	.pn532_gpio_read = &gpio_read,
 };
 
 static int pn532_init(const struct device *dev)
