@@ -1,0 +1,37 @@
+# Copyright (c) 2026 Bayrem Gharsellaoui
+# SPDX-License-Identifier: Apache-2.0
+
+name: Format
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout module repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Set up Zephyr
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          manifest-file-name: west.yml
+          toolchains: arm-zephyr-eabi
+
+      - name: Check formatting
+        run: |
+          ZEPHYR_BASE=$(west topdir)/zephyr
+          echo "ZEPHYR_BASE=${ZEPHYR_BASE}"
+          find drivers include samples -type f \( -name "*.c" -o -name "*.h" \) \
+            | xargs clang-format \
+                --style=file:${ZEPHYR_BASE}/.clang-format \
+                --dry-run --Werror
