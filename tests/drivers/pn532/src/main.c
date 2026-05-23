@@ -17,16 +17,16 @@ ZTEST_SUITE(pn532, NULL, NULL, NULL, NULL, NULL);
 ZTEST(pn532, test_get_firmware_version)
 {
 	const struct device *dev = DEVICE_DT_GET_ONE(nxp_pn532);
-    struct pn532_fw_version version = {0};
+	struct pn532_fw_version version = {0};
 
-    zassert_equal(-EINVAL, pn532_get_firmware_version(NULL, NULL));
+	zassert_equal(-EINVAL, pn532_get_firmware_version(NULL, NULL));
 
-    zassert_equal(-EINVAL, pn532_get_firmware_version(dev, NULL));
+	zassert_equal(-EINVAL, pn532_get_firmware_version(dev, NULL));
 
-    zassert_equal(-EINVAL, pn532_get_firmware_version(NULL, &version));
-    zassert_equal(0, version.ic);
-    zassert_equal(0, version.ver);
-    zassert_equal(0, version.rev);
+	zassert_equal(-EINVAL, pn532_get_firmware_version(NULL, &version));
+	zassert_equal(0, version.ic);
+	zassert_equal(0, version.ver);
+	zassert_equal(0, version.rev);
 }
 
 /**
@@ -34,7 +34,7 @@ ZTEST(pn532, test_get_firmware_version)
  */
 ZTEST(pn532, test_in_list_passive_target)
 {
-    zassert_equal(-EINVAL, pn532_in_list_passive_target(NULL));
+	zassert_equal(-EINVAL, pn532_in_list_passive_target(NULL));
 }
 
 /**
@@ -43,19 +43,19 @@ ZTEST(pn532, test_in_list_passive_target)
 ZTEST(pn532, test_in_data_exchange)
 {
 	const struct device *dev = DEVICE_DT_GET_ONE(nxp_pn532);
-    uint8_t send[] = {0xDE, 0xAD, 0xBE, 0xEF};
-    uint8_t send_length = sizeof(send);
-    uint8_t response[32] = {0};
+	uint8_t send[] = {0xDE, 0xAD, 0xBE, 0xEF};
+	uint8_t send_length = sizeof(send);
+	uint8_t response[32] = {0};
 
-    zassert_equal(-EINVAL, pn532_in_data_exchange(NULL, NULL, 0, NULL, NULL));
+	zassert_equal(-EINVAL, pn532_in_data_exchange(NULL, NULL, 0, NULL, NULL));
 
-    zassert_equal(-EINVAL, pn532_in_data_exchange(dev, NULL, 0, NULL, NULL));
+	zassert_equal(-EINVAL, pn532_in_data_exchange(dev, NULL, 0, NULL, NULL));
 
-    zassert_equal(-EINVAL, pn532_in_data_exchange(dev, send, 0, NULL, NULL));
+	zassert_equal(-EINVAL, pn532_in_data_exchange(dev, send, 0, NULL, NULL));
 
-    zassert_equal(-EINVAL, pn532_in_data_exchange(dev, send, send_length, NULL, NULL));
+	zassert_equal(-EINVAL, pn532_in_data_exchange(dev, send, send_length, NULL, NULL));
 
-    zassert_equal(-EINVAL, pn532_in_data_exchange(dev, send, send_length, response, NULL));
+	zassert_equal(-EINVAL, pn532_in_data_exchange(dev, send, send_length, response, NULL));
 }
 
 /**
@@ -65,8 +65,8 @@ ZTEST(pn532, test_set_serial_baudrate)
 {
 	const struct device *dev = DEVICE_DT_GET_ONE(nxp_pn532);
 
-    zassert_equal(-EINVAL, pn532_set_serial_baudrate(NULL, 0));
-    zassert_equal(-EINVAL, pn532_set_serial_baudrate(dev, 0));
+	zassert_equal(-EINVAL, pn532_set_serial_baudrate(NULL, 0));
+	zassert_equal(-EINVAL, pn532_set_serial_baudrate(dev, 0));
 }
 
 /**
@@ -74,7 +74,7 @@ ZTEST(pn532, test_set_serial_baudrate)
  */
 ZTEST(pn532, test_gpio_write)
 {
-    zassert_equal(-EINVAL, pn532_gpio_write(NULL, 0));
+	zassert_equal(-EINVAL, pn532_gpio_write(NULL, 0));
 }
 
 /**
@@ -82,5 +82,5 @@ ZTEST(pn532, test_gpio_write)
  */
 ZTEST(pn532, test_gpio_read)
 {
-    zassert_equal(-EINVAL, pn532_gpio_read(NULL, NULL));
+	zassert_equal(-EINVAL, pn532_gpio_read(NULL, NULL));
 }

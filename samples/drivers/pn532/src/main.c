@@ -27,10 +27,9 @@ int main(void)
 	LOG_INF("Found PN5%02X", version.ic);
 	LOG_INF("Firmware version: %d.%d", version.ver, version.rev);
 
-    while (1)
-    {
-        k_msleep(100);
-    }
+	while (1) {
+		k_msleep(100);
+	}
 
-    return 0;
+	return 0;
 }

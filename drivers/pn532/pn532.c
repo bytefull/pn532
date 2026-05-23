@@ -65,8 +65,8 @@ LOG_MODULE_REGISTER(pn532, CONFIG_PN532_LOG_LEVEL);
 /* GPIO validation bit */
 #define PN532_GPIO_VALIDATIONBIT (0x80)
 /* P32 and P34 are not defined in header file because they are reserved and must always stay high */
-#define PN532_GPIO_P32 BIT(2)
-#define PN532_GPIO_P34 BIT(4)
+#define PN532_GPIO_P32           BIT(2)
+#define PN532_GPIO_P34           BIT(4)
 
 #define PN532_MAX_FRAME_SIZE      (64)
 #define PN532_RX_RING_BUFFER_SIZE (256)
@@ -710,8 +710,8 @@ static int gpio_write(const struct device *pn532_dev, uint8_t pins)
 	}
 
 	uint8_t response_buf[8] = {0};
-	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf,
-			 sizeof(response_buf)) != sizeof(response_buf)) {
+	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf, sizeof(response_buf)) !=
+	    sizeof(response_buf)) {
 		LOG_ERR("Failed to read WriteGPIO response");
 		return -EIO;
 	}
@@ -751,8 +751,8 @@ static int gpio_read(const struct device *pn532_dev, uint8_t *pins)
 	}
 
 	uint8_t response_buf[11] = {0};
-	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf,
-			 sizeof(response_buf)) != sizeof(response_buf)) {
+	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf, sizeof(response_buf)) !=
+	    sizeof(response_buf)) {
 		LOG_ERR("Failed to read ReadGPIO response");
 		return -EIO;
 	}

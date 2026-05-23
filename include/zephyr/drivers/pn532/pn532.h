@@ -81,7 +81,7 @@ __subsystem struct pn532_driver_api {
 	 * @retval -errno Other negative errno codes on failure.
 	 */
 	int (*pn532_in_data_exchange)(const struct device *dev, uint8_t *send, uint8_t send_length,
-					  uint8_t *response, uint8_t *response_length);
+				      uint8_t *response, uint8_t *response_length);
 
 	/**
 	 * @brief Set the serial baud rate of the PN532 device.
@@ -153,7 +153,7 @@ __syscall int pn532_get_firmware_version(const struct device *dev,
 					 struct pn532_fw_version *version);
 
 static inline int z_impl_pn532_get_firmware_version(const struct device *dev,
-							struct pn532_fw_version *version)
+						    struct pn532_fw_version *version)
 {
 	if ((dev == NULL) || (version == NULL)) {
 		return -EINVAL;
@@ -182,14 +182,14 @@ static inline int z_impl_pn532_in_list_passive_target(const struct device *dev)
 }
 
 __syscall int pn532_in_data_exchange(const struct device *dev, uint8_t *send, uint8_t send_length,
-					 uint8_t *response, uint8_t *response_length);
+				     uint8_t *response, uint8_t *response_length);
 
 static inline int z_impl_pn532_in_data_exchange(const struct device *dev, uint8_t *send,
 						uint8_t send_length, uint8_t *response,
 						uint8_t *response_length)
 {
 	if ((dev == NULL) || (send == NULL) || (response == NULL) || (response_length == NULL) ||
-		(send_length == 0)) {
+	    (send_length == 0)) {
 		return -EINVAL;
 	}
 
