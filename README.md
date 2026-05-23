@@ -2,7 +2,7 @@
 
 [![GitHub Build workflow status](https://github.com/bytefull/pn532/workflows/Build/badge.svg)](https://github.com/bytefull/pn532/actions/workflows/build.yml)
 [![GitHub Test workflow status](https://github.com/bytefull/pn532/workflows/Test/badge.svg)](https://github.com/bytefull/pn532/actions/workflows/test.yml)
-[![Coverage](https://codecov.io/gh/bytefull/pn532/branch/codecov/graph/badge.svg)](https://codecov.io/gh/bytefull/pn532)
+[![Coverage](https://codecov.io/gh/bytefull/pn532/graph/badge.svg)](https://codecov.io/gh/bytefull/pn532)
 [![GitHub release](https://img.shields.io/github/v/release/bytefull/pn532)](https://github.com/bytefull/pn532/releases)
 [![Zephyr RTOS](https://img.shields.io/badge/zephyr-v4.4.0-blue)](https://github.com/zephyrproject-rtos/zephyr/releases/tag/v4.4.0)
 [![Zephyr SDK](https://img.shields.io/github/v/release/zephyrproject-rtos/sdk-ng?label=sdk-ng)](https://github.com/zephyrproject-rtos/sdk-ng/releases)
