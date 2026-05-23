@@ -12,7 +12,7 @@
 ZTEST_SUITE(pn532, NULL, NULL, NULL, NULL, NULL);
 
 /**
- * @brief Test firmware version retrieval for the PN532 driver
+ * @brief Test get firmware version for the PN532 driver
  */
 ZTEST(pn532, test_get_firmware_version)
 {
@@ -30,12 +30,10 @@ ZTEST(pn532, test_get_firmware_version)
 }
 
 /**
- * @brief Test inlist passive target for the PN532 driver
+ * @brief Test in list passive target for the PN532 driver
  */
 ZTEST(pn532, test_in_list_passive_target)
 {
-	const struct device *dev = DEVICE_DT_GET_ONE(nxp_pn532);
-
     zassert_equal(-EINVAL, pn532_in_list_passive_target(NULL));
 }
 
@@ -53,7 +51,7 @@ ZTEST(pn532, test_in_data_exchange)
 
     zassert_equal(-EINVAL, pn532_in_data_exchange(dev, NULL, 0, NULL, NULL));
 
-    zassert_equal(-EINVAL, pn532_in_data_exchange(dev, send, NULL, NULL, NULL));
+    zassert_equal(-EINVAL, pn532_in_data_exchange(dev, send, 0, NULL, NULL));
 
     zassert_equal(-EINVAL, pn532_in_data_exchange(dev, send, send_length, NULL, NULL));
 
@@ -72,17 +70,17 @@ ZTEST(pn532, test_set_serial_baudrate)
 }
 
 /**
- * @brief Test GPIO write to the PN532 driver
+ * @brief Test GPIO write for the PN532 driver
  */
-ZTEST(pn532, test_gpio_pin_set)
+ZTEST(pn532, test_gpio_write)
 {
-    zassert_equal(-EINVAL, pn532_gpio_pin_set(NULL, 0));
+    zassert_equal(-EINVAL, pn532_gpio_write(NULL, 0));
 }
 
 /**
- * @brief Test GPIO read from the PN532 driver
+ * @brief Test GPIO read for the PN532 driver
  */
-ZTEST(pn532, test_gpio_pin_get)
+ZTEST(pn532, test_gpio_read)
 {
-    zassert_equal(-EINVAL, pn532_gpio_pin_get(NULL));
+    zassert_equal(-EINVAL, pn532_gpio_read(NULL, NULL));
 }
