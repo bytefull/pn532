@@ -1,0 +1,29 @@
+# Copyright (c) 2026 Bayrem Gharsellaoui
+# SPDX-License-Identifier: Apache-2.0
+
+name: Format
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout module repo
+        uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check formatting
+        run: |
+          find drivers include samples -type f \( -name "*.c" -o -name "*.h" \) \
+            | xargs clang-format \
+                --style=file:../../../../zephyr/.clang-format \
+                --dry-run --Werror
