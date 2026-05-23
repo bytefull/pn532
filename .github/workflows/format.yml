@@ -16,10 +16,20 @@ jobs:
       - name: Checkout module repo
         uses: actions/checkout@v4
 
-      - name: Install clang-format
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Set up Zephyr
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          manifest-file-name: west.yml
+          toolchains: arm-zephyr-eabi
+
+      - name: Build on ${{ matrix.board }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-format
+          west build -b ${{ matrix.board }} samples/drivers/pn532
 
       - name: Check formatting
         run: |
