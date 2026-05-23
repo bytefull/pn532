@@ -29,6 +29,7 @@ jobs:
 
       - name: Check formatting
         run: |
+          ZEPHYR_BASE=$(west topdir)/zephyr
           echo "ZEPHYR_BASE=${ZEPHYR_BASE}"
           find drivers include samples -type f \( -name "*.c" -o -name "*.h" \) \
             | xargs clang-format \
