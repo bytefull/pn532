@@ -141,16 +141,16 @@ static int pn532_uart_send(const struct device *pn532_dev, const uint8_t *data, 
 {
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
-		return -1;
+		return -EINVAL;
 	}
 
 	if (data == NULL) {
 		LOG_ERR("Invalid data buffer");
-		return -1;
+		return -EINVAL;
 	}
 	if (len == 0) {
 		LOG_ERR("Invalid data length");
-		return -1;
+		return -EINVAL;
 	}
 
 	const struct pn532_config *config = pn532_dev->config;
@@ -169,7 +169,7 @@ static int pn532_wait_for_rx(const struct device *pn532_dev, size_t expected_len
 {
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
-		return -1;
+		return -EINVAL;
 	}
 
 	uint32_t rx_len = 0;
@@ -191,19 +191,19 @@ static int pn532_write_command(const struct device *pn532_dev, uint8_t *cmd, uin
 {
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
-		return -1;
+		return -EINVAL;
 	}
 
 	/* Check if the command buffer is valid */
 	if (cmd == NULL) {
 		LOG_ERR("Invalid command buffer");
-		return -1;
+		return -EINVAL;
 	}
 
 	/* Check if the command length is valid */
 	if (cmd_len == 0) {
 		LOG_ERR("Invalid command length");
-		return -1;
+		return -EINVAL;
 	}
 
 	/* Allocate full frame: 8 bytes overhead + command length */
@@ -252,17 +252,17 @@ static int pn532_send_command(const struct device *pn532_dev, const uint8_t *cmd
 
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
-		return -1;
+		return -EINVAL;
 	}
 
 	if (cmd == NULL) {
 		LOG_ERR("Invalid command buffer");
-		return -1;
+		return -EINVAL;
 	}
 
 	if (cmd_len == 0) {
 		LOG_ERR("Invalid command length");
-		return -1;
+		return -EINVAL;
 	}
 
 	struct pn532_data *pn532_data = pn532_dev->data;
@@ -278,7 +278,7 @@ static int pn532_send_command(const struct device *pn532_dev, const uint8_t *cmd
 	/* Wait for 6 bytes of ACK */
 	if (pn532_wait_for_rx(pn532_dev, sizeof(ack), timeout_ms) < 0) {
 		LOG_ERR("Timeout waiting for ACK");
-		return -1;
+		return -ETIMEDOUT;
 	}
 
 	/* Read the ACK bytes */
@@ -315,7 +315,7 @@ static int pn532_wakeup(const struct device *pn532_dev)
 {
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
-		return -1;
+		return -EINVAL;
 	}
 	LOG_DBG("Sending wakeup command");
 	int ret = pn532_uart_send(pn532_dev, PN532_WAKEUP_SEQ, sizeof(PN532_WAKEUP_SEQ));
@@ -329,7 +329,7 @@ int pn532_sam_config(const struct device *pn532_dev)
 {
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
-		return -1;
+		return -EINVAL;
 	}
 
 	struct pn532_data *pn532_data = pn532_dev->data;
@@ -340,7 +340,7 @@ int pn532_sam_config(const struct device *pn532_dev)
 	pn532_data->tx_buffer[2] = 0x14; // timeout 50ms * 20 = 1 second
 	pn532_data->tx_buffer[3] = 0x01; // use IRQ pin!
 	if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, 4, 1000) < 0) {
-		return -1;
+		return -EIO;
 	}
 	/* Wait for a little bit until we receive the 9 bytes: size of the SAMConfig response */
 	if (pn532_wait_for_rx(pn532_dev, 9, 1000) < 0) {
@@ -351,22 +351,22 @@ int pn532_sam_config(const struct device *pn532_dev)
 	uint8_t response_buf[9] = {0};
 	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf, 9) != 9) {
 		LOG_ERR("Failed to read SAMConfig response");
-		return -1;
+		return -EIO;
 	}
 	/* Verify response buffer */
 	if ((response_buf[0] != PN532_PREAMBLE) || (response_buf[1] != PN532_STARTCODE1) ||
 	    (response_buf[2] != PN532_STARTCODE2)) {
 		LOG_ERR("Preamble missing");
-		return -1;
+		return -EIO;
 	}
 	/* I don't know what is byte 4 used for */
 	if (response_buf[5] != PN532_PN532TOHOST) {
 		LOG_ERR("Invalid SAMConfig response: 0x%02X", response_buf[5]);
-		return -1;
+		return -EIO;
 	}
 	if (response_buf[6] != 0x15) {
 		LOG_ERR("Invalid SAMConfig response: 0x%02X", response_buf[6]);
-		return -1;
+		return -EIO;
 	}
 
 	LOG_DBG("SAMConfig OK");
@@ -390,7 +390,7 @@ static int get_firmware_version(const struct device *pn532_dev, struct pn532_fw_
 	LOG_DBG("Sending GetFirmwareVersion command");
 	pn532_data->tx_buffer[0] = PN532_COMMAND_GETFIRMWAREVERSION;
 	if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, 1, 1000) < 0) {
-		return -1;
+		return -EIO;
 	}
 	/* Wait for a little bit until we receive the 13 bytes of the GetFirmwareVersion response */
 	if (pn532_wait_for_rx(pn532_dev, 13, 100) < 0) {
@@ -401,18 +401,18 @@ static int get_firmware_version(const struct device *pn532_dev, struct pn532_fw_
 	uint8_t response_buf[13] = {0};
 	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf, 13) != 13) {
 		LOG_ERR("Failed to read GetFirmwareVersion response");
-		return -1;
+		return -EIO;
 	}
 	/* Verify response buffer */
 	if ((response_buf[5] != PN532_PN532TOHOST) ||
 	    (response_buf[6] != PN532_RESPONSE_GETFIRMWAREVERSION)) {
 		LOG_ERR("Unexpected response to GetFirmwareVersion");
-		return -1;
+		return -EIO;
 	}
 	if (memcmp(response_buf, PN532_EXPECTED_FIRMWARE_VERSION,
 		   sizeof(PN532_EXPECTED_FIRMWARE_VERSION)) != 0) {
 		LOG_ERR("Unexpected firmware version response");
-		return -1;
+		return -EIO;
 	}
 
 	version->ic = response_buf[7];
@@ -427,7 +427,7 @@ static int in_list_passive_target(const struct device *pn532_dev)
 {
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
-		return -1;
+		return -EINVAL;
 	}
 
 	struct pn532_data *pn532_data = pn532_dev->data;
@@ -437,44 +437,44 @@ static int in_list_passive_target(const struct device *pn532_dev)
 	pn532_data->tx_buffer[1] = 0x01;
 	pn532_data->tx_buffer[2] = 0x00;
 	if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, 3, 1200) < 0) {
-		return -1;
+		return -EIO;
 	}
 	/* Wait for a little bit until we receive the 24 bytes of the InListPassiveTarget response
 	 */
 	if (pn532_wait_for_rx(pn532_dev, 24, 1200) < 0) {
 		LOG_ERR("Timeout waiting for InListPassiveTarget response");
-		return -1;
+		return -ETIMEDOUT;
 	}
 	/* Read the inListPassiveTarget response */
 	uint8_t response_buf[24] = {0};
 	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf, 24) != 24) {
 		LOG_ERR("Failed to read inListPassiveTarget response");
-		return -1;
+		return -EIO;
 	}
 	/* Verify response preamble */
 	if ((response_buf[0] != PN532_PREAMBLE) || (response_buf[1] != PN532_STARTCODE1) ||
 	    (response_buf[2] != PN532_STARTCODE2)) {
 		LOG_ERR("Preamble missing");
-		return -1;
+		return -EIO;
 	}
 	/* Verify response length */
 	uint8_t length = response_buf[3];
 	if (response_buf[4] != (uint8_t)(~length + 1)) {
 		LOG_ERR("Length check invalid");
 		LOG_DBG("Expected: 0x%02X, Got: 0x%02X", (uint8_t)(~length + 1), response_buf[4]);
-		return -1;
+		return -EIO;
 	}
 	/* Verify response code */
 	if ((response_buf[5] != PN532_PN532TOHOST) ||
 	    (response_buf[6] != PN532_RESPONSE_INLISTPASSIVETARGET)) {
 		LOG_ERR("Unexpected response to inlist passive host");
-		return -1;
+		return -EIO;
 	}
 	/* Verify number of targets inlisted */
 	if (response_buf[7] != 1) {
 		LOG_ERR("Unhandled number of targets inlisted");
 		LOG_DBG("Number of tags inlisted: 0x%02X", response_buf[7]);
-		return -1;
+		return -EIO;
 	}
 	/* Save the listed tag */
 	pn532_data->in_listed_tag = response_buf[8];
@@ -488,27 +488,27 @@ static int in_data_exchange(const struct device *pn532_dev, uint8_t *send, uint8
 {
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
-		return -1;
+		return -EINVAL;
 	}
 
 	if (send == NULL) {
 		LOG_ERR("Invalid command buffer");
-		return -1;
+		return -EINVAL;
 	}
 
 	if (send_length == 0) {
 		LOG_ERR("Invalid command length");
-		return -1;
+		return -EINVAL;
 	}
 
 	if (response == NULL) {
 		LOG_ERR("Invalid response buffer");
-		return -1;
+		return -EINVAL;
 	}
 
 	if ((response_length == NULL) || (*response_length == 0)) {
 		LOG_ERR("Invalid response length");
-		return -1;
+		return -EINVAL;
 	}
 
 	LOG_DBG("Sending InDataExchange command");
@@ -520,7 +520,7 @@ static int in_data_exchange(const struct device *pn532_dev, uint8_t *send, uint8
 		pn532_data->tx_buffer[i + 2] = send[i];
 	}
 	if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, send_length + 2, 1000) < 0) {
-		return -1;
+		return -EIO;
 	}
 	/* We can ignore the timeout here and only raise a warning
 	 * since the user doesn't necessarily know
@@ -546,26 +546,26 @@ static int in_data_exchange(const struct device *pn532_dev, uint8_t *send, uint8
 	if ((response_buf[0] != PN532_PREAMBLE) || (response_buf[1] != PN532_STARTCODE1) ||
 	    (response_buf[2] != PN532_STARTCODE2)) {
 		LOG_ERR("Invalid response preamble");
-		return -1;
+		return -EIO;
 	}
 	/* Verify response length */
 	uint8_t length = response_buf[3];
 	if (response_buf[4] != (uint8_t)(~length + 1)) {
 		LOG_ERR("Length check invalid");
 		LOG_DBG("Expected: 0x%02X, Got: 0x%02X", (uint8_t)(~length + 1), response_buf[4]);
-		return -1;
+		return -EIO;
 	}
 	/* Verify response code */
 	if ((response_buf[5] != PN532_PN532TOHOST) ||
 	    (response_buf[6] != PN532_RESPONSE_INDATAEXCHANGE)) {
 		LOG_ERR("Invalid response code");
-		return -1;
+		return -EIO;
 	}
 	/* Verify status code */
 	if ((response_buf[7] & 0x3f) != 0) {
 		LOG_ERR("Status code indicates an error, expected 0x00 but got 0x%02X",
 			response_buf[7] & 0x3f);
-		return -1;
+		return -EIO;
 	}
 	/* Save response length */
 	length -= 3;
@@ -587,7 +587,7 @@ static int set_serial_baudrate(const struct device *pn532_dev, uint32_t baudrate
 
 	if (pn532_dev == NULL) {
 		LOG_ERR("Invalid PN532 device pointer");
-		return -1;
+		return -EINVAL;
 	}
 	struct pn532_data *pn532_data = pn532_dev->data;
 
@@ -618,38 +618,38 @@ static int set_serial_baudrate(const struct device *pn532_dev, uint32_t baudrate
 		break;
 	default:
 		LOG_ERR("Unsupported baud rate: %d", baudrate);
-		return -1;
+		return -EINVAL;
 	}
 
 	LOG_DBG("Sending SetSerialBaudRate command");
 	pn532_data->tx_buffer[0] = PN532_COMMAND_SETSERIALBAUDRATE;
 	pn532_data->tx_buffer[1] = baudrate_code;
 	if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, 2, 100) < 0) {
-		return -1;
+		return -EIO;
 	}
 	/* Wait for a little bit until we receive the 8 bytes: size of the SetSerialBaudRate
 	 * response */
 	if (pn532_wait_for_rx(pn532_dev, 8, 100) < 0) {
 		LOG_ERR("Timeout waiting for SetSerialBaudRate response");
-		return -1;
+		return -ETIMEDOUT;
 	}
 	// /* Read the SetSerialBaudRate response */
 	uint8_t response_buf[8] = {0};
 	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf, 8) != 8) {
 		LOG_ERR("Failed to read SetSerialBaudRate response");
-		return -1;
+		return -EIO;
 	}
 	/* Verify response buffer */
 	if ((response_buf[0] != PN532_PREAMBLE) || (response_buf[1] != PN532_STARTCODE1) ||
 	    (response_buf[2] != PN532_STARTCODE2)) {
 		LOG_ERR("Preamble missing");
-		return -1;
+		return -EIO;
 	}
 
 	if ((response_buf[5] != PN532_PN532TOHOST) ||
 	    (response_buf[6] != PN532_RESPONSE_SETSERIALBAUDRATE)) {
 		LOG_ERR("Invalid SetSerialBaudRate response: 0x%02X", response_buf[5]);
-		return -1;
+		return -EIO;
 	}
 
 	/* Per datasheet: PN532 switches AFTER receiving our ACK.
@@ -683,27 +683,104 @@ static int set_serial_baudrate(const struct device *pn532_dev, uint32_t baudrate
 	return 0;
 }
 
-static int pn532_gpio_pin_set(const struct device *pn532_dev, int value)
+static int pn532_gpio_write(const struct device *pn532_dev, uint8_t pins)
 {
-	ARG_UNUSED(pn532_dev);
-	ARG_UNUSED(value);
+	if (pn532_dev == NULL) {
+		LOG_ERR("Invalid PN532 device pointer");
+		return -EINVAL;
+	}
+
+	struct pn532_data *pn532_data = pn532_dev->data;
+
+	/* P32 and P34 are reserved and must always stay high */
+	pins |= BIT(PN532_GPIO_P32) | BIT(PN532_GPIO_P34);
+
+	LOG_DBG("Sending WriteGPIO command");
+
+	pn532_data->tx_buffer[0] = PN532_COMMAND_WRITEGPIO;
+	pn532_data->tx_buffer[1] = PN532_GPIO_VALIDATIONBIT | pins;
+	/* We don't want to control P7 port so we put 0x00 here */
+	pn532_data->tx_buffer[2] = 0x00;
+	if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, 3, 1000) < 0) {
+		return -EIO;
+	}
+
+	/* Response size = 8 bytes */
+	if (pn532_wait_for_rx(pn532_dev, 8, 1000) < 0) {
+		LOG_ERR("Timeout waiting for WriteGPIO response");
+		return -ETIMEDOUT;
+	}
+
+	uint8_t response_buf[8] = {0};
+	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf,
+			 sizeof(response_buf)) != sizeof(response_buf)) {
+		LOG_ERR("Failed to read WriteGPIO response");
+		return -EIO;
+	}
+
+	/* Verify response */
+	if ((response_buf[5] != PN532_PN532TOHOST) ||
+	    (response_buf[6] != (PN532_COMMAND_WRITEGPIO + 1))) {
+		LOG_ERR("Invalid WriteGPIO response");
+		return -EIO;
+	}
+
+	LOG_DBG("WriteGPIO OK");
 
 	return 0;
 }
 
-static int pn532_gpio_pin_get(const struct device *pn532_dev)
+static int pn532_gpio_read(const struct device *pn532_dev, uint8_t *pins)
 {
-	ARG_UNUSED(pn532_dev);
+	if ((pn532_dev == NULL) || (pins == NULL)) {
+		LOG_ERR("Invalid parameter");
+		return -EINVAL;
+	}
+
+	struct pn532_data *pn532_data = pn532_dev->data;
+
+	LOG_DBG("Sending ReadGPIO command");
+
+	pn532_data->tx_buffer[0] = PN532_COMMAND_READGPIO;
+	if (pn532_send_command(pn532_dev, pn532_data->tx_buffer, 1, 1000) < 0) {
+		return -EIO;
+	}
+
+	/* Response size = 11 bytes */
+	if (pn532_wait_for_rx(pn532_dev, 11, 1000) < 0) {
+		LOG_ERR("Timeout waiting for ReadGPIO response");
+		return -ETIMEDOUT;
+	}
+
+	uint8_t response_buf[11] = {0};
+	if (ring_buf_get(&pn532_data->rx_ring_buffer, response_buf,
+			 sizeof(response_buf)) != sizeof(response_buf)) {
+		LOG_ERR("Failed to read ReadGPIO response");
+		return -EIO;
+	}
+
+	/* Verify response */
+	if ((response_buf[5] != PN532_PN532TOHOST) ||
+	    (response_buf[6] != (PN532_COMMAND_READGPIO + 1))) {
+		LOG_ERR("Invalid ReadGPIO response");
+		return -EIO;
+	}
+
+	*pins = response_buf[7];
+
+	LOG_DBG("ReadGPIO OK: 0x%02X", *pins);
 
 	return 0;
 }
 
-static DEVICE_API(pn532, pn532_api) = {.pn532_get_firmware_version = &get_firmware_version,
-				       .pn532_in_list_passive_target = &in_list_passive_target,
-				       .pn532_in_data_exchange = &in_data_exchange,
-				       .pn532_set_serial_baudrate = &set_serial_baudrate,
-					   .pn532_gpio_pin_set = &gpio_pin_set,
-					   .pn532_gpio_pin_get = &gpio_pin_get}
+static DEVICE_API(pn532, pn532_api) = {
+	.pn532_get_firmware_version = &get_firmware_version,
+	.pn532_in_list_passive_target = &in_list_passive_target,
+	.pn532_in_data_exchange = &in_data_exchange,
+	.pn532_set_serial_baudrate = &set_serial_baudrate,
+	.pn532_gpio_write = &pn532_gpio_write,
+	.pn532_gpio_read = &pn532_gpio_read,
+};
 
 static int pn532_init(const struct device *dev)
 {
