@@ -9,7 +9,7 @@ on:
   pull_request:
 
 jobs:
-  clang-format:
+  format:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,10 +26,6 @@ jobs:
         with:
           manifest-file-name: west.yml
           toolchains: arm-zephyr-eabi
-
-      - name: Build on ${{ matrix.board }}
-        run: |
-          west build -b ${{ matrix.board }} samples/drivers/pn532
 
       - name: Check formatting
         run: |
