@@ -33,4 +33,4 @@ jobs:
 
       - name: Run Software in Loop test
         run: |
-          python tests/drivers/pn532/sil/scripts/pn532_device.py --port /dev/pts/3 & ./tests/drivers/pn532/sil/build/zephyr/zephyr.exe
+          python tests/drivers/pn532/sil/scripts/pn532_device.py --port /dev/pts/1 & ./tests/drivers/pn532/sil/build/zephyr/zephyr.exe
