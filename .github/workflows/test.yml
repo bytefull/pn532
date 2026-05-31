@@ -29,4 +29,4 @@ jobs:
 
       - name: Run unit tests via twister
         run: |
-          west twister -p native_sim -T tests/drivers/pn532 --inline-logs -v
+          west twister -p native_sim -T tests/drivers/pn532/unit --inline-logs -v

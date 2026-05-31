@@ -1,0 +1,14 @@
+/*
+ * Copyright (c) 2026 Bayrem Gharsellaoui
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&uart1 {
+    status = "okay";
+    compatible = "zephyr,native-pty-uart";
+
+    pn532 {
+        compatible = "nxp,pn532";
+        /* No IRQ or Reset pin used in native_sim */
+    };
+};
