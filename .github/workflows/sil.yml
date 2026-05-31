@@ -29,8 +29,8 @@ jobs:
 
       - name: Build SiL test application
         run: |
-          west build -b native_sim tests/drivers/pn532/sil -d build/
+          west build -b native_sim tests/drivers/pn532/sil -d tests/drivers/pn532/sil/build/
 
-      - name: Run integration test
+      - name: Run Software in Loop test
         run: |
           python tests/drivers/pn532/sil/scripts/pn532_device.py --port /dev/pts/3 & ./tests/drivers/pn532/sil/build/zephyr/zephyr.exe
