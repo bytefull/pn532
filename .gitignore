@@ -3,3 +3,4 @@
 build/
 twister-out*/
 .west/
+tests/sil/scripts/venv/

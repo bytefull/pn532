@@ -35,7 +35,7 @@ jobs:
           ZEPHYR_TOOLCHAIN_VARIANT: zephyr
         run: |
           west twister -p native_sim \
-            -T tests/drivers/pn532 \
+            -T tests/drivers/pn532/unit \
             --inline-logs \
             --coverage \
             --outdir twister-out
