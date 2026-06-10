@@ -111,9 +111,7 @@ static void pn532_uart_rx_cb(const struct device *uart_dev, void *user_data)
 		return;
 	}
 
-	if (!uart_irq_update(uart_dev)) {
-		return;
-	}
+	uart_irq_update(uart_dev);
 
 	if (!uart_irq_rx_ready(uart_dev)) {
 		return;
